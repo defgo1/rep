@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Report Tracker</title>
+    <link rel="icon" href="https://avatars.githubusercontent.com/u/211755669?v=4" type="image/png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .overall-progress {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        .overall-progress h2 {
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .progress-bar-container {
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+            height: 30px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            height: 100%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        .btn-secondary {
+            background: #764ba2;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #633d8a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        .student-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+        
+        .student-card.hidden {
+            display: none;
+        }
+        
+        .student-card.disabled {
+            opacity: 0.5;
+            background: #e9ecef;
+        }
+        
+        .student-card.collapsed {
+            padding: 15px 20px;
+        }
+        
+        .student-card.collapsed .student-progress,
+        .student-card.collapsed .subject-section,
+        .student-card.collapsed .general-tasks {
+            display: none;
+        }
+        
+        .student-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .student-card.collapsed .student-header {
+            margin-bottom: 0;
+        }
+        
+        .student-name-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .toggle-icon {
+            font-size: 1.2em;
+            color: #667eea;
+            transition: transform 0.3s;
+        }
+        
+        .student-card.collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+        
+        .student-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .toggle-student {
+            padding: 6px 12px;
+            border: 2px solid #dc3545;
+            background: white;
+            color: #dc3545;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .toggle-student:hover {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .student-progress {
+            margin-bottom: 20px;
+        }
+        
+        .student-progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .subject-section {
+            margin-bottom: 20px;
+        }
+        
+        .subject-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .task-item:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+        
+        .task-item.completed {
+            background: #e8f5e9;
+        }
+        
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #667eea;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            flex-shrink: 0;
+        }
+        
+        .task-item.completed .checkbox {
+            background: #4CAF50;
+            border-color: #4CAF50;
+        }
+        
+        .checkbox::after {
+            content: '✓';
+            color: white;
+            font-weight: bold;
+            display: none;
+        }
+        
+        .task-item.completed .checkbox::after {
+            display: block;
+        }
+        
+        .task-label {
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .general-tasks {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .general-tasks-title {
+            font-weight: bold;
+            color: #f57c00;
+            margin-bottom: 10px;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .container {
+                box-shadow: none;
+                padding: 20px;
+            }
+            
+            .controls, .toggle-student {
+                display: none;
+            }
+            
+            .student-card {
+                page-break-inside: avoid;
+            }
+        }
+        
+        .print-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .print-table th,
+        .print-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .print-table th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .print-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .status-complete {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .status-incomplete {
+            color: #f44336;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Student End Report Progress Tracker</h1>
+            <p>Track completion of all student reports across English, Maths, and PSL</p>
+        </div>
+        
+        <div class="overall-progress">
+            <h2>Overall Project Progress</h2>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="overallProgress">0%</div>
+            </div>
+            <p style="margin-top: 10px; font-size: 14px;" id="overallStats"></p>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-primary" onclick="printProgress()">🖨️ Print Progress Report</button>
+            <button class="btn btn-primary" onclick="saveProgress()">💾 Save Progress</button>
+        </div>
+        
+        <div id="studentContainer"></div>
+    </div>
+
+    <script>
+        const students = ['EL', 'ZJ', 'MS', 'CI', 'FP', 'WN', 'KM', 'JT', 'SR'];
+        const subjects = ['English', 'Maths', 'PSL'];
+        const subjectTasks = [
+            'Photo 1',
+            'Photo 2',
+            'Write 250 words'
+        ];
+        const generalTasks = [
+            'Proofread',
+            'Hand in First Draft',
+            'Edit',
+            'File in IMC as PDF'
+        ];
+        
+        let progressData = {};
+        
+        function initializeData() {
+            const saved = localStorage.getItem('studentReportProgress');
+            if (saved) {
+                progressData = JSON.parse(saved);
+                // Ensure collapsed and hidden properties exist for all students
+                students.forEach(student => {
+                    if (progressData[student]) {
+                        if (progressData[student].collapsed === undefined) {
+                            progressData[student].collapsed = false;
+                        }
+                        if (progressData[student].hidden === undefined) {
+                            progressData[student].hidden = false;
+                        }
+                    }
+                });
+            } else {
+                students.forEach(student => {
+                    progressData[student] = {
+                        enabled: true,
+                        collapsed: false,
+                        hidden: false,
+                        tasks: {}
+                    };
+                    subjects.forEach(subject => {
+                        subjectTasks.forEach(task => {
+                            progressData[student].tasks[`${subject}-${task}`] = false;
+                        });
+                    });
+                    generalTasks.forEach(task => {
+                        progressData[student].tasks[task] = false;
+                    });
+                });
+            }
+        }
+        
+        function saveProgress() {
+            localStorage.setItem('studentReportProgress', JSON.stringify(progressData));
+            alert('✅ Progress saved successfully!');
+        }
+        
+        function calculateProgress(student) {
+            const tasks = progressData[student].tasks;
+            const total = Object.keys(tasks).length;
+            const completed = Object.values(tasks).filter(v => v).length;
+            return { completed, total, percentage: Math.round((completed / total) * 100) };
+        }
+        
+        function calculateOverallProgress() {
+            let totalTasks = 0;
+            let completedTasks = 0;
+            let visibleStudents = 0;
+            
+            students.forEach(student => {
+                if (!progressData[student].hidden) {
+                    visibleStudents++;
+                    const progress = calculateProgress(student);
+                    totalTasks += progress.total;
+                    completedTasks += progress.completed;
+                }
+            });
+            
+            const percentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+            return { completedTasks, totalTasks, percentage, visibleStudents };
+        }
+        
+        function updateOverallProgress() {
+            const overall = calculateOverallProgress();
+            const progressBar = document.getElementById('overallProgress');
+            progressBar.style.width = overall.percentage + '%';
+            progressBar.textContent = overall.percentage + '%';
+            
+            document.getElementById('overallStats').textContent = 
+                `${overall.completedTasks} of ${overall.totalTasks} tasks completed • ${overall.visibleStudents} visible students`;
+        }
+        
+        function toggleTask(student, taskKey) {
+            if (progressData[student].hidden) return;
+            progressData[student].tasks[taskKey] = !progressData[student].tasks[taskKey];
+            renderStudents();
+            updateOverallProgress();
+        }
+        
+        function toggleStudent(student) {
+            progressData[student].hidden = !progressData[student].hidden;
+            renderStudents();
+            updateOverallProgress();
+        }
+        
+        function toggleStudentCollapse(student) {
+            progressData[student].collapsed = !progressData[student].collapsed;
+            renderStudents();
+        }
+        
+        function toggleAllStudents() {
+            const anyEnabled = students.some(s => progressData[s].enabled);
+            students.forEach(student => {
+                progressData[student].enabled = !anyEnabled;
+            });
+            renderStudents();
+            updateOverallProgress();
+        }
+        
+        function renderStudents() {
+            const container = document.getElementById('studentContainer');
+            container.innerHTML = '';
+            
+            students.forEach(student => {
+                const progress = calculateProgress(student);
+                const hidden = progressData[student].hidden;
+                const collapsed = progressData[student].collapsed;
+                
+                const card = document.createElement('div');
+                card.className = `student-card ${hidden ? 'hidden' : ''} ${collapsed ? 'collapsed' : ''}`;
+                
+                let html = `
+                    <div class="student-header" onclick="toggleStudentCollapse('${student}')">
+                        <div class="student-name-wrapper">
+                            <span class="toggle-icon">▼</span>
+                            <div class="student-name">${student}</div>
+                            <span style="color: #999; font-size: 0.9em;">(${progress.percentage}%)</span>
+                        </div>
+                        <button class="toggle-student" onclick="event.stopPropagation(); toggleStudent('${student}')">
+                            ✕ Hide
+                        </button>
+                    </div>
+                    
+                    <div class="student-progress">
+                        <div class="student-progress-label">
+                            <span>Individual Progress</span>
+                            <span>${progress.completed} / ${progress.total} tasks</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" style="width: ${progress.percentage}%">${progress.percentage}%</div>
+                        </div>
+                    </div>
+                `;
+                
+                subjects.forEach(subject => {
+                    html += `
+                        <div class="subject-section">
+                            <div class="subject-title">${subject}</div>
+                            <div class="task-grid">
+                    `;
+                    
+                    subjectTasks.forEach(task => {
+                        const taskKey = `${subject}-${task}`;
+                        const completed = progressData[student].tasks[taskKey];
+                        html += `
+                            <div class="task-item ${completed ? 'completed' : ''}" 
+                                 onclick="toggleTask('${student}', '${taskKey}')">
+                                <div class="checkbox"></div>
+                                <div class="task-label">${task}</div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                    <div class="general-tasks">
+                        <div class="general-tasks-title">General Tasks</div>
+                        <div class="task-grid">
+                `;
+                
+                generalTasks.forEach(task => {
+                    const completed = progressData[student].tasks[task];
+                    html += `
+                        <div class="task-item ${completed ? 'completed' : ''}" 
+                             onclick="toggleTask('${student}', '${task}')">
+                            <div class="checkbox"></div>
+                            <div class="task-label">${task}</div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+                
+                card.innerHTML = html;
+                container.appendChild(card);
+            });
+        }
+        
+        function toggleAllStudents() {
+            const anyEnabled = students.some(s => progressData[s].enabled);
+            students.forEach(student => {
+                progressData[student].enabled = !anyEnabled;
+            });
+            renderStudents();
+            updateOverallProgress();
+        }
+        
+        function printProgress() {
+            const printWindow = window.open('', '_blank');
+            let html = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Student Report Progress</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        h1 { color: #333; text-align: center; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+                        th { background: #667eea; color: white; }
+                        tr:nth-child(even) { background: #f8f9fa; }
+                        .complete { color: #4CAF50; font-weight: bold; }
+                        .incomplete { color: #f44336; font-weight: bold; }
+                        .disabled { color: #999; font-style: italic; }
+                        .summary { margin: 20px 0; padding: 15px; background: #f0f0f0; border-radius: 8px; }
+                    </style>
+                </head>
+                <body>
+                    <h1>Student End Report Progress Summary</h1>
+                    <p style="text-align: center;">Generated: ${new Date().toLocaleString()}</p>
+            `;
+            
+            const overall = calculateOverallProgress();
+            html += `
+                <div class="summary">
+                    <h2>Overall Progress: ${overall.percentage}%</h2>
+                    <p><strong>${overall.completedTasks}</strong> of <strong>${overall.totalTasks}</strong> tasks completed</p>
+                    <p><strong>${overall.visibleStudents}</strong> visible students</p>
+                </div>
+            `;
+            
+            html += `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Status</th>
+            `;
+            
+            subjects.forEach(subject => {
+                subjectTasks.forEach(task => {
+                    html += `<th>${subject}<br>${task}</th>`;
+                });
+            });
+            
+            generalTasks.forEach(task => {
+                html += `<th>${task}</th>`;
+            });
+            
+            html += `
+                            <th>Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            students.forEach(student => {
+                if (progressData[student].hidden) return; // Skip hidden students in print
+                
+                const progress = calculateProgress(student);
+                
+                html += `<tr>`;
+                html += `<td><strong>${student}</strong></td>`;
+                html += `<td>Visible</td>`;
+                
+                subjects.forEach(subject => {
+                    subjectTasks.forEach(task => {
+                        const taskKey = `${subject}-${task}`;
+                        const completed = progressData[student].tasks[taskKey];
+                        html += `<td class="${completed ? 'complete' : 'incomplete'}">${completed ? '✓' : '✗'}</td>`;
+                    });
+                });
+                
+                generalTasks.forEach(task => {
+                    const completed = progressData[student].tasks[task];
+                    html += `<td class="${completed ? 'complete' : 'incomplete'}">${completed ? '✓' : '✗'}</td>`;
+                });
+                
+                html += `<td><strong>${progress.percentage}%</strong> (${progress.completed}/${progress.total})</td>`;
+                html += `</tr>`;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+                </body>
+                </html>
+            `;
+            
+            printWindow.document.write(html);
+            printWindow.document.close();
+            setTimeout(() => {
+                printWindow.print();
+            }, 250);
+        }
+        
+        // Initialize on load
+        initializeData();
+        renderStudents();
+        updateOverallProgress();
+        
+        // Auto-save every 30 seconds
+        setInterval(saveProgress, 30000);
+    </script>
+</body>
+</html>
